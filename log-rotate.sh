@@ -42,7 +42,7 @@ echo "[Unit]
 Description=Fake Log Generator
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3.8 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
+ExecStart=/usr/bin/python3 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
 Restart=always
 [Install]
 WantedBy=multi-user.target" > $SERVICE_FILE
