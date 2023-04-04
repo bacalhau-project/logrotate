@@ -38,18 +38,14 @@ pip3 install Faker
 FAKE_LOG_GENERATOR_PY="$PWD/fake_log_generator.py"
 SERVICE_FILE="fake-log-generator.service"
 
-cat << EOF > $SERVICE_FILE
-[Unit]
+echo "[Unit]
 Description=Fake Log Generator
-
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
+ExecStart=/usr/bin/python3.8 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
 Restart=always
-
 [Install]
-WantedBy=multi-user.target
-EOF
+WantedBy=multi-user.target" > $SERVICE_FILE
 
 # Step 5: Enable and start the systemd service
 SYSTEMD_SERVICE_PATH="/etc/systemd/system"
