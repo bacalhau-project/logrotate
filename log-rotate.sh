@@ -35,7 +35,7 @@ sudo apt-get install -y python3 python3-pip
 pip3 install Faker
 
 # Step 4: Create a systemd service
-FAKE_LOG_GENERATOR_PY="./fake_log_generator.py"
+FAKE_LOG_GENERATOR_PY="$PWD/fake_log_generator.py"
 SERVICE_FILE="fake-log-generator.service"
 
 cat << EOF > $SERVICE_FILE
@@ -44,7 +44,7 @@ Description=Fake Log Generator
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 $FAKE_LOG_GENERATOR_PY
+ExecStart=/usr/bin/python3 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
 Restart=always
 
 [Install]
