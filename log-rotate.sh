@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Step 0a: Create the logrotate configuration file
+mkdir logs
 LOGS_DIR="$PWD/logs"
 LOGROTATE_CONF="/etc/logrotate.d/my_logs"
 
