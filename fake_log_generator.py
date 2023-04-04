@@ -3,6 +3,8 @@ import time
 from datetime import datetime
 from random import choice, choices
 import uuid
+import argparse
+import os
 from faker import Faker
 
 fake = Faker()
@@ -23,24 +25,32 @@ def generate_log_entry():
 
     return log_entry
 
-def main():
+def main(log_directory):
     while True:
         log_entry = generate_log_entry()
         
         # Load existing log entries
+        log_file_path = os.path.join(log_directory, "fake_logs.log")
         try:
-            with open("fake_logs.log", "r") as log_file:
+            with open(log_file_path, "r") as log_file:
                 log_entries = json.load(log_file)
         except (FileNotFoundError, json.JSONDecodeError):
             log_entries = []
 
         # Append new log entry and write back to the file
         log_entries.append(log_entry)
-        with open("fake_logs.log", "w") as log_file:
+        with open(log_file_path, "w") as log_file:
             json.dump(log_entries, log_file, indent=2)
 
         # Sleep for 5 seconds before generating another log entry
         time.sleep(5)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Generate fake log entries and save them to a specified directory.")
+    parser.add_argument("-d", "--directory", type=str, required=True, help="The directory to save the log file.")
+    args = parser.parse_args()
+
+    if not os.path.exists(args.directory):
+        os.makedirs(args.directory)
+
+    main(args.directory)
