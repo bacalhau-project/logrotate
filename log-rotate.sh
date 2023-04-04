@@ -38,4 +38,4 @@ pip3 install Faker
 FAKE_LOG_GENERATOR_PY="$PWD/fake_log_generator.py"
 SERVICE_FILE="fake-log-generator.service"
 
-/usr/bin/python3 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
+python3 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
