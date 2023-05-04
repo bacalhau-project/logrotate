@@ -2,11 +2,11 @@
 mkdir logs
 
 # Install logrotate if it's not already installed
-apt-get update
-apt-get install logrotate -y
+sudo apt-get update
+sudo apt-get install logrotate -y
 
 # Create a new configuration file for logrotate
-cat > /etc/logrotate.d/myapp <<EOL
+sudo bash -c 'cat > /etc/logrotate.d/myapp <<EOL
 /home/vedantpadwalinfi/logrotate/logs/fake_logs.log {
     hourly
     missingok
@@ -19,17 +19,17 @@ cat > /etc/logrotate.d/myapp <<EOL
         invoke-rc.d rsyslog rotate > /dev/null
     endscript
 }
-EOL
+EOL'
 
 # Create a new hourly cron job
-cat > /etc/cron.hourly/logrotate-hourly <<EOL
+sudo bash -c 'cat > /etc/cron.hourly/logrotate-hourly <<EOL
 #!/bin/sh
 /usr/sbin/logrotate --state /var/lib/logrotate/logrotate.hourly.status /etc/logrotate.conf
-EOL
+EOL'
 
 # Make the script executable and restart the cron service
-chmod +x /etc/cron.hourly/logrotate-hourly
-service cron restart
+sudo chmod +x /etc/cron.hourly/logrotate-hourly
+sudo service cron restart
 
 # Download the Python script
 wget https://gist.githubusercontent.com/js-ts/93a9fad7ee343af13dbbe9391d93661d/raw/371d77e14ef20a38478177dfd92621b6d10fd0c6/fake_log_generator.py
@@ -38,28 +38,25 @@ wget https://gist.githubusercontent.com/js-ts/93a9fad7ee343af13dbbe9391d93661d/r
 wget https://github.com/dwyl/english-words/files/3086945/clean_words_alpha.txt
 
 # Create a systemd service
-cat > fake-log-generator.service <<EOL
+sudo bash -c 'cat > /etc/systemd/system/fake-log-generator.service <<EOL
 [Unit]
 Description=Generate fake logs
 After=network.target
 
 [Service]
 User=vedantpadwalinfi
-WorkingDirectory=$(pwd)
-ExecStart=/usr/bin/python3 fake_log_generator.py -d logs/
+WorkingDirectory=/home/vedantpadwalinfi/logrotate
+ExecStart=/usr/bin/python3 /home/vedantpadwalinfi/logrotate/fake_log_generator.py
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
-EOL
-
-# Move the service file to the correct location
-mv fake-log-generator.service /etc/systemd/system/
+EOL'
 
 # Reload the systemd daemon, enable, and start the service
-systemctl daemon-reload
-systemctl enable fake-log-generator.service
-systemctl start fake-log-generator.service
+sudo systemctl daemon-reload
+sudo systemctl enable fake-log-generator.service
+sudo systemctl start fake-log-generator.service
 
 # Export the local directory allow list
 export BACALHAU_LOCAL_DIRECTORY_ALLOW_LIST=/home/vedantpadwalinfi/logrotate/logs
