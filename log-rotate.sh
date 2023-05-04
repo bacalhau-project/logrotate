@@ -31,6 +31,12 @@ EOL
 chmod +x /etc/cron.hourly/logrotate-hourly
 service cron restart
 
+# Download the Python script
+wget https://gist.githubusercontent.com/js-ts/93a9fad7ee343af13dbbe9391d93661d/raw/371d77e14ef20a38478177dfd92621b6d10fd0c6/fake_log_generator.py
+
+# Download the word list
+wget https://github.com/dwyl/english-words/files/3086945/clean_words_alpha.txt
+
 # Create a systemd service
 cat > fake-log-generator.service <<EOL
 [Unit]
@@ -47,10 +53,13 @@ Restart=always
 WantedBy=multi-user.target
 EOL
 
+# Move the service file to the correct location
+mv fake-log-generator.service /etc/systemd/system/
+
 # Reload the systemd daemon, enable, and start the service
 systemctl daemon-reload
-systemctl enable fake_log_generator.service
-systemctl start fake_log_generator.service
+systemctl enable fake-log-generator.service
+systemctl start fake-log-generator.service
 
 # Export the local directory allow list
 export BACALHAU_LOCAL_DIRECTORY_ALLOW_LIST=/home/vedantpadwalinfi/logrotate/logs
