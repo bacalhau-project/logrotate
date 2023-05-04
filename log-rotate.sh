@@ -33,4 +33,25 @@ sudo chmod +x $LOGROTATE_CRON_HOURLY
 FAKE_LOG_GENERATOR_PY="$PWD/fake_log_generator.py"
 SERVICE_FILE="fake-log-generator.service"
 
-python3 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
+cat > $SERVICE_FILE <<EOL
+[Unit]
+Description=Generate fake logs
+After=network.target
+
+[Service]
+User=$USER
+WorkingDirectory=$PWD
+ExecStart=/usr/bin/python3 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Move the service file to the correct location
+sudo mv $SERVICE_FILE /etc/systemd/system/
+
+# Reload the systemd daemon, enable, and start the service
+sudo systemctl daemon-reload
+sudo systemctl enable fake-log-generator.service
+sudo systemctl start fake-log-generator.service
