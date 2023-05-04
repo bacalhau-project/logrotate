@@ -1,41 +1,56 @@
 #!/bin/bash
-
-# Step 0a: Create the logrotate configuration file
 mkdir logs
-LOGS_DIR="$PWD/logs"
-LOGROTATE_CONF="/etc/logrotate.d/my_logs"
 
-cat << EOF | sudo tee $LOGROTATE_CONF
-$LOGS_DIR/*.log {
+# Install logrotate if it's not already installed
+apt-get update
+apt-get install logrotate -y
+
+# Create a new configuration file for logrotate
+cat > /etc/logrotate.d/myapp <<EOL
+/home/vedantpadwalinfi/logrotate/logs/fake_logs.log {
     hourly
-    rotate 1
     missingok
-    notifempty
+    rotate 24
     compress
-    olddir /var/logs/raw_logs
+    delaycompress
+    notifempty
+    create 0640 root adm
+    postrotate
+        invoke-rc.d rsyslog rotate > /dev/null
+    endscript
 }
-EOF
+EOL
 
-# Step 0b: Create the log rotation output directory
-sudo mkdir -p /var/logs/raw_logs
+# Create a new hourly cron job
+cat > /etc/cron.hourly/logrotate-hourly <<EOL
+#!/bin/sh
+/usr/sbin/logrotate --state /var/lib/logrotate/logrotate.hourly.status /etc/logrotate.conf
+EOL
 
-# Step 0c: Create the /etc/cron.hourly/ directory and set appropriate permissions
-LOGROTATE_CRON_HOURLY="/etc/cron.hourly/logrotate"
-sudo mkdir -p /etc/cron.hourly
-sudo chown root:root /etc/cron.hourly
-sudo chmod 755 /etc/cron.hourly
+# Make the script executable and restart the cron service
+chmod +x /etc/cron.hourly/logrotate-hourly
+service cron restart
 
-# Step 0d: Create a new logrotate script in the /etc/cron.hourly/ directory
-sudo bash -c "echo '/usr/sbin/logrotate --hourly /etc/logrotate.conf' > $LOGROTATE_CRON_HOURLY"
-sudo chmod +x $LOGROTATE_CRON_HOURLY
+# Create a systemd service
+cat > fake-log-generator.service <<EOL
+[Unit]
+Description=Generate fake logs
+After=network.target
 
-# Install necessary packages and download the word list
-sudo apt-get update -y
-sudo apt-get install -y python3 python3-pip
-pip3 install Faker
+[Service]
+User=vedantpadwalinfi
+WorkingDirectory=$(pwd)
+ExecStart=/usr/bin/python3 fake_log_generator.py -d logs/
+Restart=always
 
-# Step 4: Create a systemd service
-FAKE_LOG_GENERATOR_PY="$PWD/fake_log_generator.py"
-SERVICE_FILE="fake-log-generator.service"
+[Install]
+WantedBy=multi-user.target
+EOL
 
-python3 $FAKE_LOG_GENERATOR_PY -d $LOGS_DIR
+# Reload the systemd daemon, enable, and start the service
+systemctl daemon-reload
+systemctl enable fake_log_generator.service
+systemctl start fake_log_generator.service
+
+# Export the local directory allow list
+export BACALHAU_LOCAL_DIRECTORY_ALLOW_LIST=/home/vedantpadwalinfi/logrotate/logs
